@@ -4,12 +4,14 @@
 int main(){
 	Queue<int> heap(100);
 
-	for (int i = 0; i < 15; i++) 
+	for (int i = 1; i < 8; i++) 
 		heap.add(i);
 
-	std::cout << heap.empty() << std::endl;
-	std::cout << heap.get_size() << std::endl;
-	std::cout << heap.get_max_item() << std::endl;
+	std::cout << "is empty?: " << heap.empty() << std::endl;
+	std::cout << "size: " << heap.get_size() << std::endl;
+	std::cout << "max item: " << heap.get_max_item() << std::endl;
+	heap.outHeap();
+	heap.del();
 	heap.outHeap();
 	return 0;
 }

@@ -1,5 +1,5 @@
 #include <iostream>
-//#include "priority_queue.h"
+#include <cstring>
 
 template<typename T>
 class Queue{
@@ -18,16 +18,23 @@ class Queue{
 			int right = 2*ind + 2;
 			int left = 2*ind + 1;
 
-			if (ind > HeapSize){
+			if (right < HeapSize){
 				if (mass[right] > mass[ind]){
 					swap(mass[right], mass[ind]);
 					heap_sort(right);
 				}
+			}
+			if (left < HeapSize){
 				if (mass[left] > mass[ind]){
 					swap(mass[left], mass[ind]);
 					heap_sort(left);
 				}
 			}
+		}
+		void extend_mass(){
+			T *temp = new T[MaxSize*2+10];
+			memcpy(temp, mass, HeapSize);
+			mass = temp;
 		}
 
 	public:
@@ -38,22 +45,16 @@ class Queue{
 		}
 	
 		void outHeap() {
- 			int i = 0;
-			int k = 1;
-			while(i < HeapSize) {
-				while((i < k) && (i < HeapSize)) {
-					std::cout << mass[i] << " ";
-					i++;
-				}
-				std::cout << std::endl;
-				k = k*2 + 1;
-			}
+			for (int i = 0; i < HeapSize; i++) { std::cout << mass[i] << " ";}
+			std::cout << std::endl;
 		}
 
 		void add(T item){
 			mass[HeapSize] = item;
 			int i = HeapSize;
 			int par_ind = (HeapSize - 1)/2;
+
+			if (HeapSize == MaxSize) extend_mass();
 
 			while(par_ind >= 0 && i > 0){
 				if (mass[i] > mass[par_ind]){
