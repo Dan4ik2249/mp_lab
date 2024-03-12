@@ -17,8 +17,21 @@ class Queue{
 		void heap_sort(int ind){
 			int right = 2*ind + 2;
 			int left = 2*ind + 1;
-
+			
 			if (right < HeapSize){
+				if(mass[right]>mass[left] && mass[right] > mass[ind]){
+					swap(mass[right], mass[ind]);
+					heap_sort(right);
+				}
+			}
+			if (left < HeapSize){
+				if (mass[right]<mass[left] && mass[left] > mass[ind]){
+					swap(mass[left], mass[ind]);
+					heap_sort(left);
+				}	
+			}
+
+			/*if (right < HeapSize){
 				if (mass[right] > mass[ind]){
 					swap(mass[right], mass[ind]);
 					heap_sort(right);
@@ -29,7 +42,7 @@ class Queue{
 					swap(mass[left], mass[ind]);
 					heap_sort(left);
 				}
-			}
+			}*/
 		}
 		void extend_mass(){
 			T *temp = new T[MaxSize*2+10];
