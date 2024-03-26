@@ -5,45 +5,29 @@ template<typename T, typename K>
 class Map{
     public:
         struct node{
-            node* p;
             K key;
             T data;
             int height;
             node* left;
             node* right;
-            node(K key, T data, node* parent){
+            node(K key, T data){
                 this->key = key;
                 this->data = data;
                 left = NULL;
                 right = NULL;
                 height = 0;
-                p = parent;
             }
         };
         node* root;
 
         int height(node* p){return p?p->height:0;}
 
-        int height_helper(node* n) {
-            if (n == nullptr) return 0;
-            
-            int leftHeight = height_helper(n->left);
-            int rightHeight = height_helper(n->right);
-
-            return std::max(leftHeight, rightHeight) + 1;
-        }
-
-        int get_height(){
-            return height_helper(this->root);
-        }
-
-        int setBalance(node* p){ return height_helper(p->right)-height_helper(p->left);}
-
         node* left_rotate(node* n){
             node* tmp1 = n->right;
             node* tmp2 = tmp1->left;
             tmp1->left = n;
             n->right = tmp2;
+            //fix_height(tmp1);
             return tmp1;
         }
         node* right_rotate(node* n){
@@ -51,6 +35,7 @@ class Map{
             node* tmp2 = tmp1->right;
             tmp1->right = n;
             n->left = tmp2;
+            //fix_height(tmp1);
             return tmp1;
         }
 
@@ -61,12 +46,13 @@ class Map{
         }
 
         void insert(K key, T data){
-            node* n = new node(key, data, NULL);
+            node* n = new node(key, data);
             if (root == NULL){
                 root = n;
             }
             else{
                 root = insertTo(root, n);
+                // insertTo(root, n);
             }
             
         }
@@ -75,43 +61,63 @@ class Map{
             if (n->key >= p->key){
                 if(p->right == NULL){
                     p->right = n;
-                    n->p = p;
                 } 
                 else{
                     insertTo(p->right, n);
                 }
-                p->height+=1;
+                // p->height+=1;
+                fix_height(p);
+                
             }
             else{
                 if(p->left == NULL){
                     p->left = n;
-                    n->p = p;
                 } 
                 else{
+                    
                     insertTo(p->left, n);
                 }
-                p->height-=1;
+                // p->height-=1;
+                fix_height(p);
             }
             n = balanceTree(root);
+            
+            fix_height(n);
             return n;
+            //return balanceTree(root);
         }
 
-        node* balanceTree(node* &n){
+        void fix_height(node* n){
+            n->height=len_tree(n->right)-len_tree(n->left);
+            if (n->left != 0) n->left->height=len_tree(n->left->right)-len_tree(n->left->left);
+            if (n->right != 0) n->right->height=len_tree(n->right->right)-len_tree(n->right->left);
+        }
+        int len_tree(node* n){
+            if (n == nullptr) {
+                return 0;
+            }
+            return 1 + std::max(len_tree(n->left), len_tree(n->right));
+        }
+
+        node* balanceTree(node* n){ 
             if(n != NULL){
                 if (n->height > 1){
-                    if(n->key > n->left->key){
-                        std::cout << n->key << std::endl;
+                    std::cout << n->key << "-"<< n->height <<std::endl;
+                    //std::cout << root->key << "-"<< root->height <<std::endl;
+                    //if (n->right->height>1||n->right->height<-1) balanceTree(n->right);
+                    if(height(n->right)>0){
                         return left_rotate(n);
                     } else {
-                        right_rotate(n->right);
+                        n->right = right_rotate(n->right);
                         return left_rotate(n);
                     }
                 }
                 if (n->height < -1){
-                    if(n->key < n->left->key){
+                    std::cout << n->key << "-" << n->height <<std::endl;
+                    if(height(n->left)<0){
                         return right_rotate(n);
                     } else {
-                        left_rotate(n->left);
+                        n->left = left_rotate(n->left);
                         return right_rotate(n);
                     }
                 }
@@ -125,29 +131,49 @@ class Map{
         void print_tree(node* node, int level = 0, char prefix = ' ') {
             if (node != nullptr) {
                 print_tree(node->right, level + 1, '/');
-                std::cout << std::string(level * 4, ' ') << prefix << node->key << std::endl;
+                std::cout << std::string(level * 4, ' ') << prefix << node->key <<"(" << node->height << ")"<< std::endl;
                 print_tree(node->left, level + 1, '\\');
             }
         }
-        void prt(){std::cout << root->key << std::endl;}
+        int is_empty(){
+            if (this->root == NULL) return 0;
+            if (this->root != NULL) return 1;
+        }
+        void del_all(){this->root = NULL;}
+        ~Map(){this->root = NULL;}
+        void prt(){std::cout<< "root: "<<root->key<<std::endl;}
 };
 
 int main(){
-    printf("main");
+    printf("main\n");
     Map<int, int> test;
-    std::cout << "create" << std::endl;
+    std::cout << "add(2)" << std::endl;
     test.insert(2,2);
-    std::cout << "1" << std::endl;
-    test.insert(4,2);
-    std::cout << "2" << std::endl;
-    test.insert(3,2);
-    std::cout << "added" << std::endl;
     test.print_tree(test.root);
+    std::cout << "add(5)" << std::endl;
+    test.insert(5,2);
+    test.print_tree(test.root);
+    std::cout << "add(3)" << std::endl;
+    test.insert(3,2);
+    test.print_tree(test.root);
+    std::cout << "add(4)" << std::endl;
     
+    test.insert(4,2);
+    test.print_tree(test.root);
+    std::cout << "add(7)" << std::endl;
+    test.insert(7,2);
+    test.print_tree(test.root);
+    std::cout << "add(1)" << std::endl;
+    test.insert(1,3);
+    test.print_tree(test.root);
 
-    
-    // for (int i = 1; i < 10; i++){
-    //     test.insert(i, i*2);
-    //     std::cout << i << std::endl;
-    // }
+    std::cout << "add(8)" << std::endl;
+    test.insert(8,2);
+    test.print_tree(test.root);
+    test.prt();
+
+    // std::cout << "add(9)" << std::endl;
+    // test.insert(9,2);
+    // test.print_tree(test.root);
+    // test.prt();
 }

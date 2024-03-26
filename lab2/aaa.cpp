@@ -1,21 +1,18 @@
 #include <iostream>
 
-#define TRUE 1
-
 
 template<class T, class Y>
 class Map{
     private:
-    template<class U>
-        class Node{
+        struct node{
             public:
                 T key;
                 Y data;
-                Node<T>* left;
-                Node<T>* right;
+                node* left;
+                node* right;
                 int height;
 
-                Node(T key, Y data){
+                node(T key, Y data){
                     this->key = key;
                     this->data = data;
                     this->left = NULL;
@@ -24,95 +21,89 @@ class Map{
                 }
         };
 
-        Node<T>* clone(const Node<T>* node) {
-            if (node == NULL) return NULL;
+        node* clone(const node* n) {
+            if (n == NULL) return NULL;
 
-            Node<T>* new_node = new Node<T>(node->key, node->data);
-            new_node->left = clone(node->left);
-            new_node->right = clone(node->right);
+            node* new_node = new node(n->key, n->data);
+            new_node->left = clone(n->left);
+            new_node->right = clone(n->right);
             return new_node;
         }
 
-        int height(Node<T>* node){
-            if (node == NULL) return 0;
-            return 1 + std::max(height(node->left), height(node->right));
+        int height(node* n){
+            if (n == NULL) return 0;
+            return 1 + std::max(height(n->left), height(n->right));
         }
-         int get_height(Node<T>* node) {
-        if (node == NULL) return 0;
-        return node->height;
+         int get_height(node* n) { return n?n->height:0; }
+
+    int get_balance_fcktr(node* n) {
+        if (n == NULL) return 0;
+        return get_height(n->left) - get_height(n->right);
     }
 
-    int get_balance_fcktr(Node<T>* node) {
-        if (node == NULL) return 0;
-        return get_height(node->left) - get_height(node->right);
+    node* rotate_right(node* n) {
+        node* tmp1 = n->left;
+        node* tmp2 = tmp1->right;
+
+        tmp1->right = n;
+        n->left = tmp2;
+
+        n->height = std::max(get_height(n->left), get_height(n->right)) + 1;
+        tmp1->height = std::max(get_height(tmp1->left), get_height(tmp1->right)) + 1;
+
+        return tmp1;
     }
 
-    Node<T>* rotate_right(Node<T>* y) {
-        Node<T>* x = y->left;
-        Node<T>* T2 = x->right;
+    node* rotate_left(node* n) {
+        node* tmp1 = n->right;
+        node* tmp2 = tmp1->left;
 
-        x->right = y;
-        y->left = T2;
+        tmp1->left = n;
+        n->right = tmp2;
 
-        y->height = std::max(get_height(y->left), get_height(y->right)) + 1;
-        x->height = std::max(get_height(x->left), get_height(x->right)) + 1;
+        n->height = std::max(get_height(n->left), get_height(n->right)) + 1;
+        tmp1->height = std::max(get_height(tmp1->left), get_height(tmp1->right)) + 1;
 
-        return x;
+        return tmp1;
     }
 
-    Node<T>* rotate_left(Node<T>* x) {
-        Node<T>* y = x->right;
-        Node<T>* T2 = y->left;
+    node* insert_node(node* n, T key, Y data) {
+        if (n == NULL) return new node(key, data);
 
-        y->left = x;
-        x->right = T2;
+        if (key < n->key)
+            n->left = insert_node(n->left, key, data);
+        else if (key > n->key)
+            n->right = insert_node(n->right, key, data);
 
-        x->height = std::max(get_height(x->left), get_height(x->right)) + 1;
-        y->height = std::max(get_height(y->left), get_height(y->right)) + 1;
+        n->height = 1 + std::max(get_height(n->left), get_height(n->right));
+        int balance = get_balance_fcktr(n);
 
-        return y;
-    }
-
-    Node<T>* insert_node(Node<T>* node, T key, Y data) {
-        if (node == NULL) return new Node<T>(key, data);
-
-        if (key < node->key)
-            node->left = insert_node(node->left, key, data);
-        else if (key > node->key)
-            node->right = insert_node(node->right, key, data);
-
-        node->height = 1 + std::max(get_height(node->left), get_height(node->right));
-        int balance = get_balance_fcktr(node);
-
-        if (balance > 1 && key < node->left->key)
-            return rotate_right(node);
-
-        if (balance < -1 && key > node->right->key)
-            return rotate_left(node);
-
-        if (balance > 1 && key > node->left->key) {
-            node->left = rotate_left(node->left);
-            return rotate_right(node);
+        if (balance > 1 && key < n->left->key)return rotate_right(n);
+        else if (balance > 1 && key > n->left->key) {
+            n->left = rotate_left(n->left);
+            return rotate_right(n);
         }
 
-        if (balance < -1 && key < node->right->key) {
-            node->right = rotate_right(node->right);
-            return rotate_left(node);
+        if (balance < -1 && key > n->right->key)
+            return rotate_left(n);
+        else if (balance < -1 && key < n->right->key) {
+            n->right = rotate_right(n->right);
+            return rotate_left(n);
         }
 
-        return node;
+        return n;
     }
 
     public:
-        Node<T>* root;
+        node* root;
 
         Map(){root = NULL;}
         Map(const Map& a){this->root = clone(a.root);}
          
         void insert(T key, Y data) {this->root = insert_node(root, key, data);}
 
-        Node<T>* search(T key){
-            Node<T>* curr = this->root;
+        node* search(T key){
+            node* curr = this->root;
             while(curr!=NULL){
                 if(curr->key == key) {
                     return curr;
@@ -133,15 +124,15 @@ class Map{
             if (search(key) != NULL) {
                 return search(key)->data;
             } else {
-                return NULL;
+                return 0;
             }
         }
 
-        int height_helper(Node<T>* node) {
-            if (node == nullptr) return 0;
+        int height_helper(node* n) {
+            if (n == nullptr) return 0;
             
-            int left_height = height_helper(node->left);
-            int right_height = height_helper(node->right);
+            int left_height = height_helper(n->left);
+            int right_height = height_helper(n->right);
 
             return std::max(left_height, right_height) + 1;
         }
@@ -150,11 +141,11 @@ class Map{
             return height_helper(this->root);
         }
 
-        void print_tree(Node<T>* node, int level = 0, char prefix = ' ') {
-            if (node != nullptr) {
-                print_tree(node->right, level + 1, '/');
-                std::cout << std::string(level * 4, ' ') << prefix << node->key << std::endl;
-                print_tree(node->left, level + 1, '\\');
+        void print_tree(node* n, int level = 0, char prefix = ' ') {
+            if (n != nullptr) {
+                print_tree(n->right, level + 1, '/');
+                std::cout << std::string(level * 4, ' ') << prefix << n->key << std::endl;
+                print_tree(n->left, level + 1, '\\');
             }
         }
 
@@ -163,42 +154,54 @@ class Map{
 };
 
 
-#define N 20
-
 int main(){
-    Map<int, double> test;
-    // for (int i = 1; i < N; i++)
-    //     test.insert(i, (double)i/5);
+    Map<int, int> test;
+    
 
-    test.insert(2, 5);
-    test.insert(4, 5);
-    test.insert(3, 5);
-    test.insert(5, 5);
-    test.insert(9, 5);
-    test.insert(1, 5);
+    test.insert(2, 1);
+    std::cout << "add(2)" << std::endl;
+    test.print_tree(test.root);
+    
+    test.insert(4, 2);
+    std::cout << "add(4)" << std::endl;
+    test.print_tree(test.root);
+    
+    test.insert(3, 3);
+    std::cout << "add(3)" << std::endl;
+    test.print_tree(test.root);
+    
+    test.insert(5, 4);
+    std::cout << "add(5)" << std::endl;
+    test.print_tree(test.root);
+    
     test.insert(7, 5);
+    std::cout << "add(7)" << std::endl;
+    test.print_tree(test.root);
+    
+    test.insert(6, 6);
+    std::cout << "add(6)" << std::endl;
+    test.print_tree(test.root);
+    
+    test.insert(9, 5);
+    std::cout << "add(7)" << std::endl;
+    test.print_tree(test.root);
+    
  
 
      
 
-    test.print_tree(test.root);
-
-     int a = 11;
+     int a = 7;
     if (test.search(a) == NULL) {
         std::cout << a << " not exist" << std::endl;
     } else {
         std::cout << a << " is exist" << std::endl;
     }
 
-    std::cout << "get date by key: " << test.get_date(a) << std::endl;
+    std::cout << "get data by key: " << test.get_date(a) << std::endl;
     std::cout << "height: " << test.get_height() << std::endl;
 
     test.del_all();
-    if (test.search(a) == NULL) {
-        std::cout << a << " not exist" << std::endl;
-    } else {
-        std::cout << a << " is exist" << std::endl;
-    }
+    test.print_tree(test.root);
 
     return 0;
 }
