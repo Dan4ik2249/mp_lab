@@ -1,7 +1,6 @@
 #include <iostream>
 #include <map>
 #include <vector>
-#include <queue>
 
 using namespace std;
 
@@ -21,11 +20,14 @@ public:
             leaf = 1;
         }
     };
+    int t;
+    Node* root;
 
     void split(Node *n){
         int count = 2*t-1;
         Node *new_node = new Node(t);
         new_node->parent = n->parent;
+        new_node->leaf = n->leaf;
         
         typename map<T, K>:: iterator it1 = n->mp.begin();
 
@@ -55,7 +57,6 @@ public:
             
             new_root->childr.insert(new_root->childr.begin(), n);
             new_root->childr.insert(new_root->childr.begin(), new_node);
-            cout << new_root->childr.size() << " - new root" <<endl;
 
             n->parent = new_root;
             new_node->parent = new_root;
@@ -74,25 +75,10 @@ public:
         if (n->parent->mp.size() >= 2*t-1) split(n->parent);
     }
 
-    void insert(T key, K data){
-        if (root==NULL){
-            Node *n = new Node(t);
-            n->mp[key] = data;
-            root = n;
-            printf("create root\n");
-        }
-        else {
-            helpInsert(root, key, data);
-        }
-
-    }
-
     void helpInsert(Node *n, T key, K data){
         if (n!=NULL){
             if (n->mp.size() == 2*t-1) {
-                printf("split run\n");
                 split(n);
-                printf("split end\n");
             }
             if(n->leaf){n->mp[key]=data;}
             else{
@@ -131,82 +117,60 @@ public:
         for (int i = 0; it2!=root->childr[1]->childr[1]->mp.end(); it2++, i++){
             cout << i << ") Ключ " << it2->first << ", значение " << it2->second << endl;
         }
-        
     }
-
-
-void print_leaves_by_level() {
-    if(root == NULL) {
-        return;
-    }
-
-    std::queue<Node*> nodes;
-    nodes.push(root);
-
-    while(!nodes.empty()) {
-        Node *current_node = nodes.front();
-        nodes.pop();
-
-        // Если узел - лист
-        if(current_node->leaf == 1) {
-            typename map<T, K>::iterator it = current_node->mp.begin();
-            for(; it != current_node->mp.end(); it++) {
-                cout << "Key: " << it->first << ", Value: " << it->second << '\n';
-            }
-        }
-
-        // Если узел не является листом - добавляем его потомков в очередь
-        else {
-            for(int i = 0; i < current_node->childr.size(); i++) {
-                nodes.push(current_node->childr[i]);
-            }
-        }
-    }
-}
-
 
 public:
-    int t;
-    Node* root;
-
     btree_map(int rang){
         t = rang;
+        root = NULL;
     };
     btree_map(btree_map *new_bt){
         new_bt->root = this->root;
     };
+
+    void insert(T key, K data){
+        if (root==NULL){
+            Node *n = new Node(t);
+            n->mp[key] = data;
+            root = n;
+            printf("create root\n");
+        }
+        else {
+            helpInsert(root, key, data);
+        }
+
+    }
+
+    K search(T key){
+        Node *n = root;
+        while(1){
+            typename map<T, K> :: iterator it = n->mp.begin();
+            size_t mp_size = n->mp.size();
+            for (int j = 1; it!=n->mp.end(); it++, j++){
+                if (key < it->first ){
+                    if (n->leaf == 1) {return 0;}
+                    n = n->childr[j-1];
+                    
+                    break;
+                }
+                if (j == mp_size && key > it->first){
+                    if (n->leaf == 1) {return 0;}
+                    n = n->childr[j];
+                    break;
+                }
+                if (key == it->first) {return it->second;}
+            }
+        }
+    }
+
     int is_empty(){
         return root==NULL?1:0;
+    }
+    void delete_all(){
+        root = NULL;
     }
     ~btree_map(){
         t = 0;
         root = NULL;
     };
 };
-
-int main(){
-    btree_map<int, int> bt(2);
-    bt.insert(3, 3);
-    bt.insert(6, 3);
-    bt.insert(2, 3);
-    bt.insert(9, 3);
-    printf("add 9\n");
-    bt.insert(5, 3);
-    printf("add 5\n");
-    bt.insert(10, 3);
-    bt.insert(11, 3);
-    bt.insert(12, 3);
-    bt.insert(13, 3);
-    bt.insert(14, 3);
-    bt.insert(15, 3);
-    bt.insert(16, 3);
-    bt.insert(17, 3);
-    bt.insert(18, 3);
-    bt.insert(19, 3);
-    bt.insert(20, 3);
-
-    bt.print_tree();
-    //bt.print_leaves_by_level();
-
-    return 0;
-}

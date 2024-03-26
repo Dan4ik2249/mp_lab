@@ -88,7 +88,7 @@ class Map{
             return rotate_left(n);
         else if (balance < -1 && key < n->right->key) {
             n->right = rotate_right(n->right);
-            return rotate_left(n);
+ 	    return rotate_left(n);
         }
 
         return n;
