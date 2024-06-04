@@ -112,11 +112,14 @@ class Graph{
 			return;
 		}
 		int D[size_wg][size_wg];
+		int way[size_wg][size_wg];
 		int INF = size_wg*10000;
+
 		for (int i = 0; i < size_wg; i++){
 			for (int j = 0; j < size_wg; j++){
 				if (i==j) D[i][j]=0;
 				else D[i][j]=INF;
+				way[i][j] = 0;
 			}
 		}
 		for (int i = 0; i < size_wg; i++){
@@ -128,6 +131,9 @@ class Graph{
 		for (int k = 0; k < size_wg; k++){
 			for (int i = 0; i < size_wg; i++){
 				for (int j = 0; j < size_wg; j++){
+					if (D[i][j] > D[i][k]+D[k][j]){
+						way[i][j] = k;
+					}
 					D[i][j] = min(D[i][j], D[i][k]+D[k][j]);
 				}
 			}
@@ -136,6 +142,14 @@ class Graph{
 		for (int i = 0; i < size_wg; i++){
 			for (int j = 0; j < size_wg; j++){
 				cout<<D[i][j]<<" ";
+			}
+			cout << endl;
+		}
+
+		cout << "matrix way: " << endl;
+		for (int i = 0; i < size_wg; i++){
+			for (int j = 0; j < size_wg; j++){
+				cout<<way[i][j]<<" ";
 			}
 			cout << endl;
 		}

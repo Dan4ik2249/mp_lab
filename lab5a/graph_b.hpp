@@ -51,7 +51,7 @@ class Graph_Alg{
                 tmp[i].push_back(graph[i][j]);
             }
         }
-        int v = 0;
+        int v = 5;
         vector<int> result;
         result.push_back(v);
 
